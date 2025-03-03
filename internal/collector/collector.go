@@ -13,9 +13,9 @@ import (
 )
 
 // CollectMetrics main collector
-func CollectMetrics(url, token string) {
+func CollectMetrics(link, token string) {
 	for {
-		products, err := defectdojo.FetchProducts(url, token)
+		products, err := defectdojo.FetchProducts(link, token)
 		if err != nil {
 			log.Printf("Error fetching products: %v", err)
 			time.Sleep(30 * time.Second)
@@ -28,7 +28,7 @@ func CollectMetrics(url, token string) {
 			wg.Add(1)
 			go func(product string) {
 				defer wg.Done()
-				vulnerabilities, err := defectdojo.FetchVulnerabilities(product, url, token)
+				vulnerabilities, err := defectdojo.FetchVulnerabilities(product, link, token)
 				if err != nil {
 					log.Printf("Error fetching vulnerabilities for product %s: %v", product, err)
 					return
