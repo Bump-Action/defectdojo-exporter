@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -61,9 +62,9 @@ type ProductsResponse struct {
 }
 
 // FetchProducts go to API DefectDojo products
-func FetchProducts(url, token string) ([]string, error) {
+func FetchProducts(link, token string) ([]string, error) {
 	products := []string{}
-	endpoint := fmt.Sprintf("%s/api/v2/products/", url)
+	endpoint := fmt.Sprintf("%s/api/v2/products/", link)
 
 	for endpoint != "" {
 		resp, err := makeRequest(endpoint, token)
@@ -87,9 +88,9 @@ func FetchProducts(url, token string) ([]string, error) {
 }
 
 // FetchVulnerabilities go to api DefectDojo findings
-func FetchVulnerabilities(product, url, token string) ([]Finding, error) {
+func FetchVulnerabilities(product, link, token string) ([]Finding, error) {
 	vulnerabilities := []Finding{}
-	endpoint := fmt.Sprintf("%s/api/v2/findings/?product_name=%s&limit=100", url, product)
+	endpoint := fmt.Sprintf("%s/api/v2/findings/?product_name=%s&limit=100", link, url.PathEscape(product))
 
 	for endpoint != "" {
 		resp, err := makeRequest(endpoint, token)
@@ -106,6 +107,7 @@ func FetchVulnerabilities(product, url, token string) ([]Finding, error) {
 		vulnerabilities = append(vulnerabilities, findingsResp.Results...)
 		endpoint = findingsResp.Next
 	}
+
 	return vulnerabilities, nil
 }
 
@@ -119,9 +121,9 @@ func CollectCWEs(vulnerabilities []Finding) map[int]bool {
 }
 
 // makeRequest send request in API DefectDojo
-func makeRequest(url, token string) ([]byte, error) {
+func makeRequest(link, token string) ([]byte, error) {
 	client := &http.Client{Timeout: 30 * time.Second}
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
 		return nil, err
 	}
