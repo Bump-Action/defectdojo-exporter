@@ -2,7 +2,7 @@
 
 # ⚠️ Warning
 
-if you have a large number of products or products with a high volume of findings, be aware that DefectDojo, with its Python-based backend, may struggle to handle the high number of requests efficiently. Running this exporter in such scenarios could impose significant load on your DefectDojo instance.
+if you have a large number of products or products with a high volume of findings, be aware that DefectDojo, may struggle to handle the high number of requests efficiently. Running this exporter in such scenarios could impose significant load on your DefectDojo instance.
 
 ## Metrics
 
