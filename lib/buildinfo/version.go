@@ -3,6 +3,7 @@ package buildinfo
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -28,5 +29,8 @@ func init() {
 }
 
 func printVersion() {
-	fmt.Fprintf(flag.CommandLine.Output(), "%s\n", Version)
+	_, err := fmt.Fprintf(flag.CommandLine.Output(), "%s\n", Version)
+	if err != nil {
+		log.Printf("Error output version: %v", err)
+	}
 }

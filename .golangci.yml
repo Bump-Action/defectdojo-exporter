@@ -5,7 +5,11 @@ run:
 
 linters:
   enable:
-  - revive
+  - errcheck
+  - ineffassign
+  - staticcheck
+  - govet
+  - unused
 
 issues:
   exclude-rules:

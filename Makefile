@@ -106,8 +106,4 @@ fmt:
 	gofmt -l -w -s ./lib
 	gofmt -l -w -s ./cmd
 
-vet:
-	GOEXPERIMENT=synctest go vet ./lib/...
-	go vet ./cmd/...
-
-check-all: fmt vet golangci-lint govulncheck
+check-all: fmt golangci-lint govulncheck

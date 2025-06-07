@@ -147,7 +147,7 @@ func FetchProductType(product int, link, token string) (string, error) {
 	}
 
 	if len(productTypeResp.Results) == 0 {
-		return "", fmt.Errorf("No product type found for product %d", product)
+		return "", fmt.Errorf("no product type found for product %d", product)
 	}
 
 	return productTypeResp.Results[0].Name, nil
@@ -205,7 +205,11 @@ func makeRequest(link, token string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("Error closing response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("HTTP error %d: %s", resp.StatusCode, resp.Status)
