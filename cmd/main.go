@@ -5,36 +5,31 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
+	"time"
 
+	"github.com/iamhalje/defectdojo-exporter/lib/buildinfo"
 	"github.com/iamhalje/defectdojo-exporter/lib/collector"
-	"github.com/iamhalje/defectdojo-exporter/lib/config"
 	"github.com/iamhalje/defectdojo-exporter/lib/defectdojo"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
-	cfg  *config.Config
-	once sync.Once
+	ddURL       = flag.String("DD_URL", "", "Base URL of the DefectDojo API (e.g. https://defectdojo.example.com)")
+	ddToken     = flag.String("DD_TOKEN", "", "API token used for authenticating requests to DefectDojo")
+	port        = flag.Int("port", 8080, "Port number where the exporter HTTP server will listen")
+	concurrency = flag.Int("concurrency", 5, "Maximum number of concurrent API requests to DefectDojo")
+	interval    = flag.Duration("interval", 5*time.Minute, "Sleep interval duration between metric collection cycles")
 )
 
-func init() {
-	once.Do(func() {
-		configPath := flag.String("config", "config.yaml", "Path to the config file")
-		flag.Parse()
-
-		var err error
-		cfg, err = config.LoadConfig(*configPath)
-		if err != nil {
-			log.Fatalf("Error loading config: %v", err)
-		}
-	})
-}
-
 func main() {
-	// register metric
+	flag.Parse()
+	buildinfo.Init()
+
+	if *ddURL == "" || *ddToken == "" {
+		log.Fatalf("Both DD_URL and DD_TOKEN must be set")
+	}
+
 	prometheus.MustRegister(defectdojo.VulnActiveGauge)
 	prometheus.MustRegister(defectdojo.VulnDuplicateGauge)
 	prometheus.MustRegister(defectdojo.VulnUnderReviewGauge)
@@ -44,11 +39,11 @@ func main() {
 	prometheus.MustRegister(defectdojo.VulnVerifiedGauge)
 	prometheus.MustRegister(defectdojo.VulnMitigatedGauge)
 
-	// start exporter
-	go collector.CollectMetrics(cfg.DD_URL, cfg.DD_TOKEN)
+	go collector.CollectMetrics(*ddURL, *ddToken, *concurrency, *interval)
 
 	http.Handle("/metrics", promhttp.Handler())
-	log.Printf("Starting server on :%d", cfg.PORT)
+	log.Printf("Starting server on :%d", *port)
 
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", cfg.PORT), nil))
+	err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
+	log.Fatalf("Problem starting HTTP server: %v", err)
 }

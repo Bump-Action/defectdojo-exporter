@@ -14,21 +14,43 @@ import (
 )
 
 // CollectMetrics main collector
-func CollectMetrics(link, token string) {
+func CollectMetrics(link, token string, concurrency int, interval time.Duration) {
+	limiter := make(chan struct{}, concurrency)
+
 	for {
 		products, err := defectdojo.FetchProducts(link, token)
 		if err != nil {
 			log.Printf("Error fetching products: %v", err)
-			time.Sleep(30 * time.Second)
-			continue
+			return
 		}
 
 		var wg sync.WaitGroup
 
-		for _, product := range products {
+		for name, id := range products {
+
 			wg.Add(1)
+			limiter <- struct{}{}
+
 			go func(product string) {
 				defer wg.Done()
+				defer func() { <-limiter }()
+
+				latestEngagementUpdate, err := defectdojo.FetchEngagementUpdatedTimestamp(id, link, token)
+				if err != nil {
+					log.Printf("Error fetching engagement update time for product %s: %v", product, err)
+					return
+				}
+
+				defectdojo.MU.Lock()
+				prevUpdate, exists := defectdojo.PrevEngagementUpdateTimes[product]
+				if exists && !latestEngagementUpdate.After(prevUpdate) {
+					defectdojo.MU.Unlock()
+					return
+				}
+
+				defectdojo.PrevEngagementUpdateTimes[product] = latestEngagementUpdate
+				defectdojo.MU.Unlock()
+
 				vulnerabilities, err := defectdojo.FetchVulnerabilities(product, link, token)
 				if err != nil {
 					log.Printf("Error fetching vulnerabilities for product %s: %v", product, err)
@@ -133,11 +155,6 @@ func CollectMetrics(link, token string) {
 				}
 				for severity, cweMap := range riskAcceptedCounts {
 					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnRiskAcceptedGauge, defectdojo.PrevRiskAccepted, product, severity, cwe, count)
-					}
-				}
-				for severity, cweMap := range verifiedCounts {
-					for cwe, count := range cweMap {
 						updateMetric(defectdojo.VulnVerifiedGauge, defectdojo.PrevVerified, product, severity, cwe, count)
 					}
 				}
@@ -146,10 +163,10 @@ func CollectMetrics(link, token string) {
 						updateMetric(defectdojo.VulnMitigatedGauge, defectdojo.PrevMitigated, product, severity, cwe, count)
 					}
 				}
-			}(product)
+			}(name)
 		}
 		wg.Wait()
-		time.Sleep(5 * time.Minute)
+		time.Sleep(interval)
 	}
 }
 

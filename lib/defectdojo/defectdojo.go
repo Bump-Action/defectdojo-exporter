@@ -23,15 +23,17 @@ var (
 	VulnVerifiedGauge      = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_verified", Help: "Number of verified vulnerabilities in DefectDojo"}, []string{"product", "severity", "cwe"})
 	VulnMitigatedGauge     = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_mitigated", Help: "Number of mitigated vulnerabilities in DefectDojo"}, []string{"product", "severity", "cwe"})
 
-	MU                sync.Mutex
-	PrevActive        = make(map[string]map[string]float64)
-	PrevDuplicate     = make(map[string]map[string]float64)
-	PrevUnderReview   = make(map[string]map[string]float64)
-	PrevFalsePositive = make(map[string]map[string]float64)
-	PrevOutOfScope    = make(map[string]map[string]float64)
-	PrevRiskAccepted  = make(map[string]map[string]float64)
-	PrevVerified      = make(map[string]map[string]float64)
-	PrevMitigated     = make(map[string]map[string]float64)
+	PrevEngagementUpdateTimes = make(map[string]time.Time)
+	PrevActive                = make(map[string]map[string]float64)
+	PrevDuplicate             = make(map[string]map[string]float64)
+	PrevUnderReview           = make(map[string]map[string]float64)
+	PrevFalsePositive         = make(map[string]map[string]float64)
+	PrevOutOfScope            = make(map[string]map[string]float64)
+	PrevRiskAccepted          = make(map[string]map[string]float64)
+	PrevVerified              = make(map[string]map[string]float64)
+	PrevMitigated             = make(map[string]map[string]float64)
+
+	MU sync.Mutex
 )
 
 type Finding struct {
@@ -53,6 +55,7 @@ type FindingsResponse struct {
 }
 
 type Product struct {
+	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -61,9 +64,20 @@ type ProductsResponse struct {
 	Results []Product `json:"results"`
 }
 
+type Engagement struct {
+	ID      int       `json:"id"`
+	Product int       `json:"product"`
+	Updated time.Time `json:"updated"`
+}
+
+type EngagementsResponse struct {
+	Next    string       `json:"next"`
+	Results []Engagement `json:"results"`
+}
+
 // FetchProducts go to API DefectDojo products
-func FetchProducts(link, token string) ([]string, error) {
-	products := []string{}
+func FetchProducts(link, token string) (map[string]int, error) {
+	products := make(map[string]int)
 	endpoint := fmt.Sprintf("%s/api/v2/products/", link)
 
 	for endpoint != "" {
@@ -79,7 +93,7 @@ func FetchProducts(link, token string) ([]string, error) {
 		}
 
 		for _, product := range productsResp.Results {
-			products = append(products, product.Name)
+			products[product.Name] = product.ID
 		}
 
 		endpoint = productsResp.Next
@@ -109,6 +123,36 @@ func FetchVulnerabilities(product, link, token string) ([]Finding, error) {
 	}
 
 	return vulnerabilities, nil
+}
+
+// FetchEngagementUpdatedTimestamp take time engagement updates
+func FetchEngagementUpdatedTimestamp(product int, link, token string) (time.Time, error) {
+	var latestUpdate time.Time
+	endpoint := fmt.Sprintf("%s/api/v2/engagements/?product=%d&limit=100", link, product)
+
+	for endpoint != "" {
+		resp, err := makeRequest(endpoint, token)
+		if err != nil {
+			log.Printf("Error fetching engagements for product %d: %v", product, err)
+			return time.Time{}, err
+		}
+
+		var engagementResp EngagementsResponse
+		if err := json.Unmarshal(resp, &engagementResp); err != nil {
+			log.Printf("Error unmarshalling engagements response for product %d: %v", product, err)
+			return time.Time{}, err
+		}
+
+		for _, engagement := range engagementResp.Results {
+			if engagement.Updated.After(latestUpdate) {
+				latestUpdate = engagement.Updated
+			}
+		}
+
+		endpoint = engagementResp.Next
+	}
+
+	return latestUpdate, nil
 }
 
 // CollectCWEs take all CWE in vulnerabilities
