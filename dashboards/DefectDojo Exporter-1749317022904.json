@@ -1,4 +1,35 @@
 {
+  "__inputs": [
+    {
+      "name": "PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "11.5.3"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    }
+  ],
   "annotations": {
     "list": [
       {
@@ -15,10 +46,11 @@
       }
     ]
   },
+  "description": "https://github.com/iamhalje/defectdojo-exporter",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 782,
+  "id": null,
   "links": [
     {
       "asDropdown": false,
@@ -37,7 +69,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+        "uid": "${ds}"
       },
       "fieldConfig": {
         "defaults": {
@@ -51,17 +83,18 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 25,
-            "gradientMode": "none",
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -111,18 +144,20 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "11.5.3",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+            "uid": "${PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(product, severity) (dojo_vulnerabilities_active{product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
+          "expr": "sum by(product, severity) (dojo_vulnerabilities_active{product_type=~\"$product_type\", product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
           "instant": false,
           "legendFormat": "{{product}} - {{severity}}",
           "range": true,
@@ -135,7 +170,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+        "uid": "${ds}"
       },
       "fieldConfig": {
         "defaults": {
@@ -149,17 +184,18 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 25,
-            "gradientMode": "none",
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -209,18 +245,20 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "11.5.3",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+            "uid": "${PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(product, severity) (dojo_vulnerabilities_duplicate{product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
+          "expr": "sum by(product, severity) (dojo_vulnerabilities_duplicate{product_type=~\"$product_type\", product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
           "instant": false,
           "legendFormat": "{{product}} - {{severity}}",
           "range": true,
@@ -233,7 +271,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+        "uid": "${ds}"
       },
       "fieldConfig": {
         "defaults": {
@@ -247,17 +285,18 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 25,
-            "gradientMode": "none",
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -307,18 +346,20 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "11.5.3",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+            "uid": "${PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(product, severity)  (dojo_vulnerabilities_false_positive{product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
+          "expr": "sum by(product, severity)  (dojo_vulnerabilities_false_positive{product_type=~\"$product_type\", product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
           "instant": false,
           "legendFormat": "{{product}} - {{severity}}",
           "range": true,
@@ -331,7 +372,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+        "uid": "${ds}"
       },
       "fieldConfig": {
         "defaults": {
@@ -345,17 +386,18 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 25,
-            "gradientMode": "none",
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -405,18 +447,20 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "11.5.3",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+            "uid": "${PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(product, severity) (dojo_vulnerabilities_out_of_scope{product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
+          "expr": "sum by(product, severity) (dojo_vulnerabilities_out_of_scope{product_type=~\"$product_type\", product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
           "instant": false,
           "legendFormat": "{{product}} - {{severity}}",
           "range": true,
@@ -429,7 +473,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+        "uid": "${ds}"
       },
       "fieldConfig": {
         "defaults": {
@@ -443,17 +487,18 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 25,
-            "gradientMode": "none",
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -503,18 +548,20 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "11.5.3",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+            "uid": "${PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(product, severity) (dojo_vulnerabilities_risk_accepted{product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
+          "expr": "sum by(product, severity) (dojo_vulnerabilities_risk_accepted{product_type=~\"$product_type\", product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
           "instant": false,
           "legendFormat": "{{product}} - {{severity}}",
           "range": true,
@@ -527,7 +574,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+        "uid": "${ds}"
       },
       "fieldConfig": {
         "defaults": {
@@ -541,17 +588,18 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 25,
-            "gradientMode": "none",
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -601,18 +649,20 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "11.5.3",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+            "uid": "${PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(product, severity)  (dojo_vulnerabilities_under_review{product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
+          "expr": "sum by(product, severity)  (dojo_vulnerabilities_under_review{product_type=~\"$product_type\", product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
           "instant": false,
           "legendFormat": "{{product}} - {{severity}}",
           "range": true,
@@ -625,7 +675,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+        "uid": "${ds}"
       },
       "fieldConfig": {
         "defaults": {
@@ -639,17 +689,18 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 25,
-            "gradientMode": "none",
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -669,8 +720,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -699,18 +749,20 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "11.5.3",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+            "uid": "${PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(product, severity) (dojo_vulnerabilities_verified{product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
+          "expr": "sum by(product, severity) (dojo_vulnerabilities_verified{product_type=~\"$product_type\", product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
           "instant": false,
           "legendFormat": "{{product}} - {{severity}}",
           "range": true,
@@ -723,7 +775,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+        "uid": "${ds}"
       },
       "fieldConfig": {
         "defaults": {
@@ -737,17 +789,18 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 25,
-            "gradientMode": "none",
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -767,8 +820,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -797,18 +849,20 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "11.5.3",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+            "uid": "${PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(product, severity) (dojo_vulnerabilities_mitigated{product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
+          "expr": "sum by(product, severity) (dojo_vulnerabilities_mitigated{product_type=~\"$product_type\", product=~\"$product\", severity=~\"$severity\", cwe=~\"$cwe\"})",
           "instant": false,
           "legendFormat": "{{product}} - {{severity}}",
           "range": true,
@@ -819,114 +873,117 @@
       "type": "timeseries"
     }
   ],
-  "refresh": "",
-  "schemaVersion": 39,
+  "refresh": "1m",
+  "schemaVersion": 40,
   "tags": [
-    "defectdojo"
+    "DefectDojo"
   ],
   "templating": {
     "list": [
       {
-        "current": {
-          "selected": true,
-          "text": [],
-          "value": []
-        },
+        "current": {},
+        "label": "datasource",
+        "name": "ds",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "current": {},
         "datasource": {
           "type": "prometheus",
-          "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+          "uid": "${ds}"
         },
-        "definition": "label_values(dojo_vulnerabilities_active,product)",
-        "hide": 0,
-        "includeAll": false,
+        "definition": "label_values(dojo_vulnerabilities_active,product_type)",
+        "includeAll": true,
+        "label": "ProductType",
+        "multi": true,
+        "name": "product_type",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(dojo_vulnerabilities_active,product_type)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${PROMETHEUS}"
+        },
+        "definition": "label_values(dojo_vulnerabilities_active{product_type=~\"$product_type\"},product)",
+        "includeAll": true,
+        "label": "Product",
         "multi": true,
         "name": "product",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(dojo_vulnerabilities_active,product)",
+          "query": "label_values(dojo_vulnerabilities_active{product_type=~\"$product_type\"},product)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
         "type": "query"
       },
       {
-        "allValue": "",
-        "current": {
-          "selected": false,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
-        },
+        "current": {},
         "datasource": {
           "type": "prometheus",
-          "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+          "uid": "${ds}"
         },
-        "definition": "label_values(dojo_vulnerabilities_active,severity)",
-        "hide": 0,
+        "definition": "label_values(dojo_vulnerabilities_active{product_type=~\"$product_type\", product=~\"$product\"},severity)",
         "includeAll": true,
+        "label": "Severity",
         "multi": true,
         "name": "severity",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(dojo_vulnerabilities_active,severity)",
+          "query": "label_values(dojo_vulnerabilities_active{product_type=~\"$product_type\", product=~\"$product\"},severity)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
         "type": "query"
       },
       {
-        "allValue": "",
-        "current": {
-          "selected": true,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
-        },
+        "current": {},
         "datasource": {
           "type": "prometheus",
-          "uid": "af1438b4-d94c-460c-833b-b6fccbcbf934"
+          "uid": "${PROMETHEUS}"
         },
-        "definition": "label_values(dojo_vulnerabilities_active{product=~\"$product\"},cwe)",
-        "hide": 0,
+        "definition": "label_values(dojo_vulnerabilities_active{product_type=~\"$product_type\", product=~\"$product\", severity=~\"$severity\"},cwe)",
         "includeAll": true,
+        "label": "CWE",
         "multi": true,
         "name": "cwe",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(dojo_vulnerabilities_active{product=~\"$product\"},cwe)",
+          "query": "label_values(dojo_vulnerabilities_active{product_type=~\"$product_type\", product=~\"$product\", severity=~\"$severity\"},cwe)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
         "type": "query"
       }
     ]
   },
   "time": {
-    "from": "now-3h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "DefectDojo Exporter",
   "uid": "fdxqlkutrij28b",
-  "version": 13,
+  "version": 29,
   "weekStart": ""
 }
