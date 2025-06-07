@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/VictoriaMetrics/VictoriaMetrics/lib/envflag"
 	"github.com/iamhalje/defectdojo-exporter/lib/buildinfo"
 	"github.com/iamhalje/defectdojo-exporter/lib/collector"
 	"github.com/iamhalje/defectdojo-exporter/lib/defectdojo"
@@ -23,7 +24,7 @@ var (
 )
 
 func main() {
-	flag.Parse()
+	envflag.Parse()
 	buildinfo.Init()
 
 	if *ddURL == "" || *ddToken == "" {

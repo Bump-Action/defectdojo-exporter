@@ -26,7 +26,7 @@ func CollectMetrics(link, token string, concurrency int, interval time.Duration)
 
 		var wg sync.WaitGroup
 
-		for name, id := range products {
+		for _, p := range products {
 
 			wg.Add(1)
 			limiter <- struct{}{}
@@ -35,7 +35,7 @@ func CollectMetrics(link, token string, concurrency int, interval time.Duration)
 				defer wg.Done()
 				defer func() { <-limiter }()
 
-				latestEngagementUpdate, err := defectdojo.FetchEngagementUpdatedTimestamp(id, link, token)
+				latestEngagementUpdate, err := defectdojo.FetchEngagementUpdatedTimestamp(p.ID, link, token)
 				if err != nil {
 					log.Printf("Error fetching engagement update time for product %s: %v", product, err)
 					return
@@ -51,6 +51,11 @@ func CollectMetrics(link, token string, concurrency int, interval time.Duration)
 				defectdojo.PrevEngagementUpdateTimes[product] = latestEngagementUpdate
 				defectdojo.MU.Unlock()
 
+				productType, err := defectdojo.FetchProductType(p.Type, link, token)
+				if err != nil {
+					log.Printf("Error fetching product type for product %s: %v", product, err)
+				}
+
 				vulnerabilities, err := defectdojo.FetchVulnerabilities(product, link, token)
 				if err != nil {
 					log.Printf("Error fetching vulnerabilities for product %s: %v", product, err)
@@ -59,7 +64,7 @@ func CollectMetrics(link, token string, concurrency int, interval time.Duration)
 
 				severities := []string{"critical", "high", "medium", "low", "info"}
 				CWEs := defectdojo.CollectCWEs(vulnerabilities)
-				initializer.InitializeMetricsForProduct(product, severities, CWEs)
+				initializer.InitializeMetricsForProduct(product, productType, severities, CWEs)
 
 				// Aggregate counts
 				activeCounts := make(map[string]map[string]float64)
@@ -130,40 +135,40 @@ func CollectMetrics(link, token string, concurrency int, interval time.Duration)
 
 				for severity, cweMap := range activeCounts {
 					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnActiveGauge, defectdojo.PrevActive, product, severity, cwe, count)
+						updateMetric(defectdojo.VulnActiveGauge, defectdojo.PrevActive, product, productType, severity, cwe, count)
 					}
 				}
 				for severity, cweMap := range duplicateCounts {
 					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnDuplicateGauge, defectdojo.PrevDuplicate, product, severity, cwe, count)
+						updateMetric(defectdojo.VulnDuplicateGauge, defectdojo.PrevDuplicate, product, productType, severity, cwe, count)
 					}
 				}
 				for severity, cweMap := range underReviewCounts {
 					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnUnderReviewGauge, defectdojo.PrevUnderReview, product, severity, cwe, count)
+						updateMetric(defectdojo.VulnUnderReviewGauge, defectdojo.PrevUnderReview, product, productType, severity, cwe, count)
 					}
 				}
 				for severity, cweMap := range falsePositiveCounts {
 					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnFalsePositiveGauge, defectdojo.PrevFalsePositive, product, severity, cwe, count)
+						updateMetric(defectdojo.VulnFalsePositiveGauge, defectdojo.PrevFalsePositive, product, productType, severity, cwe, count)
 					}
 				}
 				for severity, cweMap := range outOfScopeCounts {
 					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnOutOfScopeGauge, defectdojo.PrevOutOfScope, product, severity, cwe, count)
+						updateMetric(defectdojo.VulnOutOfScopeGauge, defectdojo.PrevOutOfScope, product, productType, severity, cwe, count)
 					}
 				}
 				for severity, cweMap := range riskAcceptedCounts {
 					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnVerifiedGauge, defectdojo.PrevVerified, product, severity, cwe, count)
+						updateMetric(defectdojo.VulnVerifiedGauge, defectdojo.PrevVerified, product, productType, severity, cwe, count)
 					}
 				}
 				for severity, cweMap := range mitigatedCounts {
 					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnMitigatedGauge, defectdojo.PrevMitigated, product, severity, cwe, count)
+						updateMetric(defectdojo.VulnMitigatedGauge, defectdojo.PrevMitigated, product, productType, severity, cwe, count)
 					}
 				}
-			}(name)
+			}(p.Name)
 		}
 		wg.Wait()
 		time.Sleep(interval)
@@ -171,7 +176,7 @@ func CollectMetrics(link, token string, concurrency int, interval time.Duration)
 }
 
 // updateMetric updated metrics
-func updateMetric(metric *prometheus.GaugeVec, prev map[string]map[string]float64, product, severity, cwe string, value float64) {
+func updateMetric(metric *prometheus.GaugeVec, prev map[string]map[string]float64, product, productType, severity, cwe string, value float64) {
 	defectdojo.MU.Lock()
 	defer defectdojo.MU.Unlock()
 
@@ -179,6 +184,6 @@ func updateMetric(metric *prometheus.GaugeVec, prev map[string]map[string]float6
 		prev[product] = make(map[string]float64)
 	}
 
-	metric.WithLabelValues(product, severity, cwe).Set(value)
+	metric.WithLabelValues(product, productType, severity, cwe).Set(value)
 	prev[product][severity] = value
 }

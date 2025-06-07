@@ -14,14 +14,14 @@ import (
 )
 
 var (
-	VulnActiveGauge        = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_active", Help: "Number of active vulnerabilities in DefectDojo"}, []string{"product", "severity", "cwe"})
-	VulnDuplicateGauge     = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_duplicate", Help: "Number of duplicate vulnerabilities in DefectDojo"}, []string{"product", "severity", "cwe"})
-	VulnUnderReviewGauge   = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_under_review", Help: "Number of vulnerabilities under review in DefectDojo"}, []string{"product", "severity", "cwe"})
-	VulnFalsePositiveGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_false_positive", Help: "Number of false positive vulnerabilities in DefectDojo"}, []string{"product", "severity", "cwe"})
-	VulnOutOfScopeGauge    = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_out_of_scope", Help: "Number of vulnerabilities out of scope in DefectDojo"}, []string{"product", "severity", "cwe"})
-	VulnRiskAcceptedGauge  = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_risk_accepted", Help: "Number of vulnerabilities with risk accepted in DefectDojo"}, []string{"product", "severity", "cwe"})
-	VulnVerifiedGauge      = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_verified", Help: "Number of verified vulnerabilities in DefectDojo"}, []string{"product", "severity", "cwe"})
-	VulnMitigatedGauge     = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_mitigated", Help: "Number of mitigated vulnerabilities in DefectDojo"}, []string{"product", "severity", "cwe"})
+	VulnActiveGauge        = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_active", Help: "Number of active vulnerabilities in DefectDojo"}, []string{"product", "product_type", "severity", "cwe"})
+	VulnDuplicateGauge     = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_duplicate", Help: "Number of duplicate vulnerabilities in DefectDojo"}, []string{"product", "product_type", "severity", "cwe"})
+	VulnUnderReviewGauge   = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_under_review", Help: "Number of vulnerabilities under review in DefectDojo"}, []string{"product", "product_type", "severity", "cwe"})
+	VulnFalsePositiveGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_false_positive", Help: "Number of false positive vulnerabilities in DefectDojo"}, []string{"product", "product_type", "severity", "cwe"})
+	VulnOutOfScopeGauge    = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_out_of_scope", Help: "Number of vulnerabilities out of scope in DefectDojo"}, []string{"product", "product_type", "severity", "cwe"})
+	VulnRiskAcceptedGauge  = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_risk_accepted", Help: "Number of vulnerabilities with risk accepted in DefectDojo"}, []string{"product", "product_type", "severity", "cwe"})
+	VulnVerifiedGauge      = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_verified", Help: "Number of verified vulnerabilities in DefectDojo"}, []string{"product", "product_type", "severity", "cwe"})
+	VulnMitigatedGauge     = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "dojo_vulnerabilities_mitigated", Help: "Number of mitigated vulnerabilities in DefectDojo"}, []string{"product", "product_type", "severity", "cwe"})
 
 	PrevEngagementUpdateTimes = make(map[string]time.Time)
 	PrevActive                = make(map[string]map[string]float64)
@@ -56,6 +56,7 @@ type FindingsResponse struct {
 
 type Product struct {
 	ID   int    `json:"id"`
+	Type int    `json:"prod_type"`
 	Name string `json:"name"`
 }
 
@@ -75,9 +76,17 @@ type EngagementsResponse struct {
 	Results []Engagement `json:"results"`
 }
 
-// FetchProducts go to API DefectDojo products
-func FetchProducts(link, token string) (map[string]int, error) {
-	products := make(map[string]int)
+type Type struct {
+	Name string `json:"name"`
+}
+
+type TypeResponse struct {
+	Results []Type `json:"results"`
+}
+
+// FetchProducts retrieves the list of products
+func FetchProducts(link, token string) ([]Product, error) {
+	products := []Product{}
 	endpoint := fmt.Sprintf("%s/api/v2/products/", link)
 
 	for endpoint != "" {
@@ -92,16 +101,13 @@ func FetchProducts(link, token string) (map[string]int, error) {
 			return nil, err
 		}
 
-		for _, product := range productsResp.Results {
-			products[product.Name] = product.ID
-		}
-
+		products = append(products, productsResp.Results...)
 		endpoint = productsResp.Next
 	}
 	return products, nil
 }
 
-// FetchVulnerabilities go to api DefectDojo findings
+// FetchVulnerabilities retrieves the list of findings
 func FetchVulnerabilities(product, link, token string) ([]Finding, error) {
 	vulnerabilities := []Finding{}
 	endpoint := fmt.Sprintf("%s/api/v2/findings/?product_name=%s&limit=100", link, url.PathEscape(product))
@@ -125,7 +131,29 @@ func FetchVulnerabilities(product, link, token string) ([]Finding, error) {
 	return vulnerabilities, nil
 }
 
-// FetchEngagementUpdatedTimestamp take time engagement updates
+// FetchProductType retrieves the product type
+func FetchProductType(product int, link, token string) (string, error) {
+	endpoint := fmt.Sprintf("%s/api/v2/product_types/?id=%d&limit=1", link, product)
+
+	resp, err := makeRequest(endpoint, token)
+	if err != nil {
+		log.Printf("Error fetching product type for product %d: %v", product, err)
+		return "", err
+	}
+	var productTypeResp TypeResponse
+	if err := json.Unmarshal(resp, &productTypeResp); err != nil {
+		log.Printf("Error unmarshalling product type response for product %d: %v", product, err)
+		return "", err
+	}
+
+	if len(productTypeResp.Results) == 0 {
+		return "", fmt.Errorf("No product type found for product %d", product)
+	}
+
+	return productTypeResp.Results[0].Name, nil
+}
+
+// FetchEngagementUpdatedTimestamp retrieves the timestamp of the most recent engagement
 func FetchEngagementUpdatedTimestamp(product int, link, token string) (time.Time, error) {
 	var latestUpdate time.Time
 	endpoint := fmt.Sprintf("%s/api/v2/engagements/?product=%d&limit=100", link, product)

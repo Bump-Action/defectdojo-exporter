@@ -7,7 +7,7 @@ import (
 )
 
 // InitializeMetricsForProduct init all metrics
-func InitializeMetricsForProduct(product string, severities []string, CWEs map[int]bool) {
+func InitializeMetricsForProduct(product string, productType string, severities []string, CWEs map[int]bool) {
 	defectdojo.MU.Lock()
 	defer defectdojo.MU.Unlock()
 
@@ -39,14 +39,14 @@ func InitializeMetricsForProduct(product string, severities []string, CWEs map[i
 	for _, severity := range severities {
 		for cwe := range CWEs {
 			cweStr := fmt.Sprintf("%d", cwe)
-			defectdojo.VulnActiveGauge.WithLabelValues(product, severity, cweStr)
-			defectdojo.VulnDuplicateGauge.WithLabelValues(product, severity, cweStr)
-			defectdojo.VulnUnderReviewGauge.WithLabelValues(product, severity, cweStr)
-			defectdojo.VulnFalsePositiveGauge.WithLabelValues(product, severity, cweStr)
-			defectdojo.VulnOutOfScopeGauge.WithLabelValues(product, severity, cweStr)
-			defectdojo.VulnRiskAcceptedGauge.WithLabelValues(product, severity, cweStr)
-			defectdojo.VulnVerifiedGauge.WithLabelValues(product, severity, cweStr)
-			defectdojo.VulnMitigatedGauge.WithLabelValues(product, severity, cweStr)
+			defectdojo.VulnActiveGauge.WithLabelValues(product, productType, severity, cweStr)
+			defectdojo.VulnDuplicateGauge.WithLabelValues(product, productType, severity, cweStr)
+			defectdojo.VulnUnderReviewGauge.WithLabelValues(product, productType, severity, cweStr)
+			defectdojo.VulnFalsePositiveGauge.WithLabelValues(product, productType, severity, cweStr)
+			defectdojo.VulnOutOfScopeGauge.WithLabelValues(product, productType, severity, cweStr)
+			defectdojo.VulnRiskAcceptedGauge.WithLabelValues(product, productType, severity, cweStr)
+			defectdojo.VulnVerifiedGauge.WithLabelValues(product, productType, severity, cweStr)
+			defectdojo.VulnMitigatedGauge.WithLabelValues(product, productType, severity, cweStr)
 		}
 	}
 }
