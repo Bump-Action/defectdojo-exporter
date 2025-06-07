@@ -1,1 +1,7 @@
+/tmp
+/pkg
+.vscode
+*.test
+*.tmp
 defectdojo-exporter
+/bin
