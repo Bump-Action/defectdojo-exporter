@@ -1,9 +1,5 @@
 # Vulnerability Metrics Collector from [DefectDojo](https://github.com/DefectDojo/django-DefectDojo)
 
-# ⚠️ Warning
-
-if you have a large number of products or products with a high volume of findings, be aware that DefectDojo, may struggle to handle the high number of requests efficiently. Running this exporter in such scenarios could impose significant load on your DefectDojo instance.
-
 ## Metrics
 
 The application collects and exposes the following metrics:
@@ -20,28 +16,42 @@ The application collects and exposes the following metrics:
 ## Lables
 
 - `product`: The name or identifier of the product associated with the vulnerabilities.
+- `product_type`: The type of the product.
 - `severity`: The severity level of the vulnerabilities, such as informational, low, medium, high, or critical.
 - `cwe`: The Common Weakness Enumeration (CWE) identifier associated with the vulnerabilities.
 
 ## Configuration
 
-The application uses a configuration file, config.yaml, which provides necessary details for connecting to DefectDojo and configuring the HTTP server. You can specify the path to the configuration file using the --config flag.
+The exporter supports configureation parameters via command-line flags. Additionally, if run with the flag `-envflag.enable=true`, any unset command-line flag will automatically fallback to the corresponding environment variable with the same name.
 
-```yaml
-# API token used to authenticate with DefectDojo
-DD_TOKEN: "kyead0535e212ae08d1d8287085dcccef1af53le"
+For example, if `-DD_TOKEN` is not provided, the exporter will look for the environment variable `DD_TOKEN`.
 
-# URL of the DefectDojo instance to collect metrics from
-DD_URL: "https://defectdojo.com"
-
-# Port number for exposing the metrics endpoint
-PORT: 8080
+Available flags:
+```
+  -DD_TOKEN string
+        API token used for authenticating requests to DefectDojo
+  -DD_URL string
+        Base URL of the DefectDojo API (e.g. https://defectdojo.example.com)
+  -concurrency int
+        Maximum number of concurrent API requests to DefectDojo (default 5)
+  -envflag.enable
+        Whether to enable reading flags from environment variables in addition to the command line. Command line flag values have priority over values from environment vars. Flags are read only from the command line if this flag isn't set. See https://docs.victoriametrics.com/victoriametrics/single-server-victoriametrics/#environment-variables for more details
+  -envflag.prefix string
+        Prefix for environment variables if -envflag.enable is set
+  -interval duration
+        Sleep interval duration between metric collection cycles (default 5m0s)
+  -port int
+        Port number where the exporter HTTP server will listen (default 8080)
+  -version
+        Show DefectDojo Exporter version
 ```
 
 ## Running
 
-By default, the application looks for config.yaml in the current directory if the --config flag is not provided.
+Run the exporter with environment variable fallback enabled:
 
 ```bash
-./defectdojo-exporter --config dd-exporter.yaml
+export DD_URL=https://defectdojo.com
+export DD_TOKEN=your_token
+./defectdojo-exporter-linux-amd64 --envflag.enable=true --port=8080
 ```
