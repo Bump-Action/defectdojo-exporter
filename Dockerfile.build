@@ -1,0 +1,25 @@
+ARG GO_VERSION=1.24
+
+FROM golang:${GO_VERSION}-alpine AS builder
+
+RUN apk add --no-cache git openssl binutils
+
+WORKDIR /src
+
+COPY . .
+
+ARG APP_NAME
+ARG GOOS
+ARG GOARCH
+ARG PKG_PREFIX
+ARG GO_BUILDINFO
+
+ENV GO_LDFLAGS="-s -w ${GO_BUILDINFO}"
+
+RUN CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} \
+    go build -ldflags "${GO_LDFLAGS}" -o /out/${APP_NAME}-${GOOS}-${GOARCH} ${PKG_PREFIX}/cmd
+
+RUN if [ "${GOOS}" = "linux" ] || [ "${GOOS}" = "darwin" ]; then strip /out/${APP_NAME}-${GOOS}-${GOARCH} || true; fi
+
+FROM scratch AS export-stage
+COPY --from=builder /out/ ./
