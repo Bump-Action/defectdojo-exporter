@@ -55,5 +55,5 @@ Run the exporter with environment variable fallback enabled:
 ```bash
 export DD_URL=https://defectdojo.com
 export DD_TOKEN=your_token
-./defectdojo-exporter-linux-amd64 --envflag.enable=true --port=8080
+./defectdojo-exporter-linux-amd64 --envflag.enable=true --port=9002
 ```
