@@ -28,22 +28,24 @@ For example, if `-DD_TOKEN` is not provided, the exporter will look for the envi
 
 Available flags:
 ```
-  -DD_TOKEN string
-        API token used for authenticating requests to DefectDojo
-  -DD_URL string
-        Base URL of the DefectDojo API (e.g. https://defectdojo.example.com)
-  -concurrency int
-        Maximum number of concurrent API requests to DefectDojo (default 5)
-  -envflag.enable
-        Whether to enable reading flags from environment variables in addition to the command line. Command line flag values have priority over values from environment vars. Flags are read only from the command line if this flag isn't set. See https://docs.victoriametrics.com/victoriametrics/single-server-victoriametrics/#environment-variables for more details
-  -envflag.prefix string
-        Prefix for environment variables if -envflag.enable is set
-  -interval duration
-        Sleep interval duration between metric collection cycles (default 5m0s)
-  -port int
-        Port number where the exporter HTTP server will listen (default 8080)
-  -version
-        Show DefectDojo Exporter version
+-DD_TOKEN string
+      API token used for authenticating requests to DefectDojo
+-DD_URL string
+      Base URL of the DefectDojo API (e.g. https://defectdojo.example.com)
+-concurrency int
+      Maximum number of concurrent API requests to DefectDojo (default 5)
+-envflag.enable
+      Whether to enable reading flags from environment variables in addition to the command line. Command line flag values have priority over values from environment vars. Flags are read only from the command line if this flag isn't set. See https://docs.victoriametrics.com/victoriametrics/single-server-victoriametrics/#environment-variables for more details
+-envflag.prefix string
+      Prefix for environment variables if -envflag.enable is set
+-interval duration
+      Sleep interval duration between metric collection cycles (default 5m0s)
+-port int
+      Port number where the exporter HTTP server will listen (default 8080)
+-user-engagement-update-check
+      Skip collection if no engagement updates, need disable if vulnerabiltiies aren't added via engagement (default true)
+-version
+      Show DefectDojo Exporter version
 ```
 
 ## Running

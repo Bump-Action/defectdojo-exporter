@@ -8,13 +8,11 @@ import (
 	"time"
 
 	"github.com/iamhalje/defectdojo-exporter/lib/defectdojo"
-	"github.com/iamhalje/defectdojo-exporter/lib/initializer"
-
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 // CollectMetrics main collector
-func CollectMetrics(link, token string, concurrency int, interval time.Duration) {
+func CollectMetrics(link, token string, concurrency int, interval time.Duration, useEngagementUpdate bool) {
 	limiter := make(chan struct{}, concurrency)
 
 	for {
@@ -27,33 +25,34 @@ func CollectMetrics(link, token string, concurrency int, interval time.Duration)
 		var wg sync.WaitGroup
 
 		for _, p := range products {
-
 			wg.Add(1)
 			limiter <- struct{}{}
 
-			go func(product string) {
+			go func(product string, productID int, productTypeID int) {
 				defer wg.Done()
 				defer func() { <-limiter }()
 
-				latestEngagementUpdate, err := defectdojo.FetchEngagementUpdatedTimestamp(p.ID, link, token)
-				if err != nil {
-					log.Printf("Error fetching engagement update time for product %s: %v", product, err)
-					return
-				}
+				if useEngagementUpdate {
+					latestEngagementUpdate, err := defectdojo.FetchEngagementUpdatedTimestamp(productID, link, token)
+					if err != nil {
+						log.Printf("Error fetching engagement update time for product %s: %v", product, err)
+						return
+					}
 
-				defectdojo.MU.Lock()
-				prevUpdate, exists := defectdojo.PrevEngagementUpdateTimes[product]
-				if exists && !latestEngagementUpdate.After(prevUpdate) {
+					defectdojo.MU.Lock()
+					prevUpdate, exists := defectdojo.PrevEngagementUpdateTimes[product]
+					if exists && !latestEngagementUpdate.After(prevUpdate) {
+						defectdojo.MU.Unlock()
+						return
+					}
+					defectdojo.PrevEngagementUpdateTimes[product] = latestEngagementUpdate
 					defectdojo.MU.Unlock()
-					return
 				}
 
-				defectdojo.PrevEngagementUpdateTimes[product] = latestEngagementUpdate
-				defectdojo.MU.Unlock()
-
-				productType, err := defectdojo.FetchProductType(p.Type, link, token)
+				productType, err := defectdojo.FetchProductType(productTypeID, link, token)
 				if err != nil {
 					log.Printf("Error fetching product type for product %s: %v", product, err)
+					return
 				}
 
 				vulnerabilities, err := defectdojo.FetchVulnerabilities(product, link, token)
@@ -62,128 +61,102 @@ func CollectMetrics(link, token string, concurrency int, interval time.Duration)
 					return
 				}
 
-				severities := []string{"critical", "high", "medium", "low", "info"}
-				CWEs := defectdojo.CollectCWEs(vulnerabilities)
-				initializer.InitializeMetricsForProduct(product, productType, severities, CWEs)
-
-				// Aggregate counts
-				activeCounts := make(map[string]map[string]float64)
-				duplicateCounts := make(map[string]map[string]float64)
-				underReviewCounts := make(map[string]map[string]float64)
-				falsePositiveCounts := make(map[string]map[string]float64)
-				outOfScopeCounts := make(map[string]map[string]float64)
-				riskAcceptedCounts := make(map[string]map[string]float64)
-				verifiedCounts := make(map[string]map[string]float64)
-				mitigatedCounts := make(map[string]map[string]float64)
-
-				// Initialize maps
-				for _, severity := range severities {
-					activeCounts[severity] = make(map[string]float64)
-					duplicateCounts[severity] = make(map[string]float64)
-					underReviewCounts[severity] = make(map[string]float64)
-					falsePositiveCounts[severity] = make(map[string]float64)
-					outOfScopeCounts[severity] = make(map[string]float64)
-					riskAcceptedCounts[severity] = make(map[string]float64)
-					verifiedCounts[severity] = make(map[string]float64)
-					mitigatedCounts[severity] = make(map[string]float64)
-
-					// default value 0
-					for _, vuln := range vulnerabilities {
-						cwe := fmt.Sprintf("%d", vuln.CWE)
-						activeCounts[severity][cwe] = 0
-						duplicateCounts[severity][cwe] = 0
-						underReviewCounts[severity][cwe] = 0
-						falsePositiveCounts[severity][cwe] = 0
-						outOfScopeCounts[severity][cwe] = 0
-						riskAcceptedCounts[severity][cwe] = 0
-						verifiedCounts[severity][cwe] = 0
-						mitigatedCounts[severity][cwe] = 0
-					}
+				type statusCountMap map[string]map[string]float64 // severity -> cwe -> count
+				statusMaps := map[string]statusCountMap{
+					"active":         {},
+					"duplicate":      {},
+					"under_review":   {},
+					"false_positive": {},
+					"out_of_scope":   {},
+					"risk_accepted":  {},
+					"verified":       {},
+					"mitigated":      {},
 				}
 
 				// Aggregate the number of vulnerabilities by severity and CWE
 				for _, vuln := range vulnerabilities {
-
 					severity := strings.ToLower(vuln.Severity)
-					cwe := fmt.Sprintf("%d", vuln.CWE)
 
 					if vuln.Active {
-						activeCounts[severity][cwe]++
+						increment(statusMaps["active"], severity, fmt.Sprintf("%d", vuln.CWE))
 					}
 					if vuln.Duplicate {
-						duplicateCounts[severity][cwe]++
+						increment(statusMaps["duplicate"], severity, fmt.Sprintf("%d", vuln.CWE))
 					}
 					if vuln.UnderReview {
-						underReviewCounts[severity][cwe]++
+						increment(statusMaps["under_review"], severity, fmt.Sprintf("%d", vuln.CWE))
 					}
 					if vuln.FalseP {
-						falsePositiveCounts[severity][cwe]++
+						increment(statusMaps["false_positive"], severity, fmt.Sprintf("%d", vuln.CWE))
 					}
 					if vuln.OutOfScope {
-						outOfScopeCounts[severity][cwe]++
+						increment(statusMaps["out_of_scope"], severity, fmt.Sprintf("%d", vuln.CWE))
 					}
 					if vuln.RiskAccepted {
-						riskAcceptedCounts[severity][cwe]++
+						increment(statusMaps["risk_accepted"], severity, fmt.Sprintf("%d", vuln.CWE))
 					}
 					if vuln.Verified {
-						verifiedCounts[severity][cwe]++
+						increment(statusMaps["verified"], severity, fmt.Sprintf("%d", vuln.CWE))
 					}
 					if vuln.Mitigated {
-						mitigatedCounts[severity][cwe]++
+						increment(statusMaps["mitigated"], severity, fmt.Sprintf("%d", vuln.CWE))
 					}
 				}
 
-				for severity, cweMap := range activeCounts {
-					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnActiveGauge, defectdojo.PrevActive, product, productType, severity, cwe, count)
+				update := func(metric *prometheus.GaugeVec, prevMap map[string]map[string]float64, current statusCountMap) {
+					defectdojo.MU.Lock()
+					defer defectdojo.MU.Unlock()
+
+					if prevMap[product] == nil {
+						prevMap[product] = make(map[string]float64)
+					}
+
+					// Mark seen entries
+					seen := make(map[string]bool)
+
+					for severity, cweMap := range current {
+						for cwe, count := range cweMap {
+							labels := []string{product, productType, severity, cwe}
+							metric.WithLabelValues(labels...).Set(count)
+							prevMap[product][fmt.Sprintf("%s|%s", severity, cwe)] = count
+							seen[fmt.Sprintf("%s|%s", severity, cwe)] = true
+						}
+					}
+
+					// Set to 0 those that were present before but now not seen
+					for key, prevVal := range prevMap[product] {
+						if !seen[key] && prevVal != 0 {
+							parts := strings.Split(key, "|")
+							if len(parts) != 2 {
+								continue
+							}
+							severity, cwe := parts[0], parts[1]
+							labels := []string{product, productType, severity, cwe}
+							metric.WithLabelValues(labels...).Set(0)
+							prevMap[product][key] = 0
+						}
 					}
 				}
-				for severity, cweMap := range duplicateCounts {
-					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnDuplicateGauge, defectdojo.PrevDuplicate, product, productType, severity, cwe, count)
-					}
-				}
-				for severity, cweMap := range underReviewCounts {
-					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnUnderReviewGauge, defectdojo.PrevUnderReview, product, productType, severity, cwe, count)
-					}
-				}
-				for severity, cweMap := range falsePositiveCounts {
-					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnFalsePositiveGauge, defectdojo.PrevFalsePositive, product, productType, severity, cwe, count)
-					}
-				}
-				for severity, cweMap := range outOfScopeCounts {
-					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnOutOfScopeGauge, defectdojo.PrevOutOfScope, product, productType, severity, cwe, count)
-					}
-				}
-				for severity, cweMap := range riskAcceptedCounts {
-					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnVerifiedGauge, defectdojo.PrevVerified, product, productType, severity, cwe, count)
-					}
-				}
-				for severity, cweMap := range mitigatedCounts {
-					for cwe, count := range cweMap {
-						updateMetric(defectdojo.VulnMitigatedGauge, defectdojo.PrevMitigated, product, productType, severity, cwe, count)
-					}
-				}
-			}(p.Name)
+
+				update(defectdojo.VulnActiveGauge, defectdojo.PrevActive, statusMaps["active"])
+				update(defectdojo.VulnDuplicateGauge, defectdojo.PrevDuplicate, statusMaps["duplicate"])
+				update(defectdojo.VulnUnderReviewGauge, defectdojo.PrevUnderReview, statusMaps["under_review"])
+				update(defectdojo.VulnFalsePositiveGauge, defectdojo.PrevFalsePositive, statusMaps["false_positive"])
+				update(defectdojo.VulnOutOfScopeGauge, defectdojo.PrevOutOfScope, statusMaps["out_of_scope"])
+				update(defectdojo.VulnRiskAcceptedGauge, defectdojo.PrevRiskAccepted, statusMaps["risk_accepted"])
+				update(defectdojo.VulnVerifiedGauge, defectdojo.PrevVerified, statusMaps["verified"])
+				update(defectdojo.VulnMitigatedGauge, defectdojo.PrevMitigated, statusMaps["mitigated"])
+
+			}(p.Name, p.ID, p.Type)
 		}
 		wg.Wait()
 		time.Sleep(interval)
 	}
 }
 
-// updateMetric updated metrics
-func updateMetric(metric *prometheus.GaugeVec, prev map[string]map[string]float64, product, productType, severity, cwe string, value float64) {
-	defectdojo.MU.Lock()
-	defer defectdojo.MU.Unlock()
-
-	if prev[product] == nil {
-		prev[product] = make(map[string]float64)
+func increment(m map[string]map[string]float64, severity, cwe string) {
+	if m[severity] == nil {
+		m[severity] = make(map[string]float64)
 	}
-
-	metric.WithLabelValues(product, productType, severity, cwe).Set(value)
-	prev[product][severity] = value
+	m[severity][cwe]++
 }
