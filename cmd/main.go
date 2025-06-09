@@ -42,9 +42,25 @@ func main() {
 
 	go collector.CollectMetrics(*ddURL, *ddToken, *concurrency, *interval)
 
-	http.Handle("/metrics", promhttp.Handler())
-	log.Printf("Starting server on :%d", *port)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, err := fmt.Fprint(w, "<h2>DefectDojo Exporter</h2>")
+		if err != nil {
+			log.Fatalf("Error writing response: %v", err)
+		}
+		_, err = fmt.Fprintf(w, "<p><a href='/metrics'>/metrics</a> -  available service metrics</p>")
+		if err != nil {
+			log.Fatalf("Error writing reponse: %v", err)
+		}
+	})
 
+	http.Handle("/metrics", promhttp.Handler())
+
+	log.Printf("Starting server on :%d", *port)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
 	log.Fatalf("Problem starting HTTP server: %v", err)
 }
