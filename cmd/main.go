@@ -16,11 +16,12 @@ import (
 )
 
 var (
-	ddURL       = flag.String("DD_URL", "", "Base URL of the DefectDojo API (e.g. https://defectdojo.example.com)")
-	ddToken     = flag.String("DD_TOKEN", "", "API token used for authenticating requests to DefectDojo")
-	port        = flag.Int("port", 8080, "Port number where the exporter HTTP server will listen")
-	concurrency = flag.Int("concurrency", 5, "Maximum number of concurrent API requests to DefectDojo")
-	interval    = flag.Duration("interval", 5*time.Minute, "Sleep interval duration between metric collection cycles")
+	ddURL               = flag.String("DD_URL", "", "Base URL of the DefectDojo API (e.g. https://defectdojo.example.com)")
+	ddToken             = flag.String("DD_TOKEN", "", "API token used for authenticating requests to DefectDojo")
+	port                = flag.Int("port", 8080, "Port number where the exporter HTTP server will listen")
+	concurrency         = flag.Int("concurrency", 5, "Maximum number of concurrent API requests to DefectDojo")
+	interval            = flag.Duration("interval", 5*time.Minute, "Sleep interval duration between metric collection cycles")
+	useEngagementUpdate = flag.Bool("user-engagement-update-check", true, "Skip collection if no engagement updates, need disable if vulnerabiltiies aren't added via engagement")
 )
 
 func main() {
@@ -40,7 +41,7 @@ func main() {
 	prometheus.MustRegister(defectdojo.VulnVerifiedGauge)
 	prometheus.MustRegister(defectdojo.VulnMitigatedGauge)
 
-	go collector.CollectMetrics(*ddURL, *ddToken, *concurrency, *interval)
+	go collector.CollectMetrics(*ddURL, *ddToken, *concurrency, *interval, *useEngagementUpdate)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {

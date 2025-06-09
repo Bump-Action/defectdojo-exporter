@@ -183,15 +183,6 @@ func FetchEngagementUpdatedTimestamp(product int, link, token string) (time.Time
 	return latestUpdate, nil
 }
 
-// CollectCWEs take all CWE in vulnerabilities
-func CollectCWEs(vulnerabilities []Finding) map[int]bool {
-	CWEs := make(map[int]bool)
-	for _, vuln := range vulnerabilities {
-		CWEs[vuln.CWE] = true
-	}
-	return CWEs
-}
-
 // makeRequest send request in API DefectDojo
 func makeRequest(link, token string) ([]byte, error) {
 	client := &http.Client{Timeout: 30 * time.Second}
