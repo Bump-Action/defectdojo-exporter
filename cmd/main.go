@@ -21,7 +21,7 @@ var (
 	port                = flag.Int("port", 8080, "Port number where the exporter HTTP server will listen")
 	concurrency         = flag.Int("concurrency", 5, "Maximum number of concurrent API requests to DefectDojo")
 	interval            = flag.Duration("interval", 5*time.Minute, "Sleep interval duration between metric collection cycles")
-	useEngagementUpdate = flag.Bool("user-engagement-update-check", true, "Skip collection if no engagement updates, need disable if vulnerabiltiies aren't added via engagement")
+	useEngagementUpdate = flag.Bool("use-engagement-update-check", true, "Skip collection if no engagement updates, need disable if vulnerabiltiies aren't added via engagement")
 )
 
 func main() {
