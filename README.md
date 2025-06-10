@@ -42,7 +42,7 @@ Available flags:
       Sleep interval duration between metric collection cycles (default 5m0s)
 -port int
       Port number where the exporter HTTP server will listen (default 8080)
--user-engagement-update-check
+-use-engagement-update-check
       Skip collection if no engagement updates, need disable if vulnerabiltiies aren't added via engagement (default true)
 -version
       Show DefectDojo Exporter version
