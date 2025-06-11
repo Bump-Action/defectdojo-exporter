@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestMainFunction1(t *testing.T) {
+func TestMainFunctionGET(t *testing.T) {
 
 	mux := http.NewServeMux()
 
@@ -40,7 +40,7 @@ func TestMainFunction1(t *testing.T) {
 	}
 }
 
-func TestMainFunction2(t *testing.T) {
+func TestMainFunctionPOST(t *testing.T) {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
