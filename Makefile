@@ -136,4 +136,4 @@ fmt:
 tests:
 	GO111MODULE=on go test -race -mod=mod ./...
 
-check-all: fmt golangci-lint govulncheck
+check-all: tests fmt golangci-lint govulncheck
