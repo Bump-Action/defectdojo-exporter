@@ -34,7 +34,9 @@ func TestFetchProducts(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(mockProducts)
+		if err := json.NewEncoder(w).Encode(mockProducts); err != nil {
+			t.Fatalf("failed to encode mockProducts: %v", err)
+		}
 	}))
 	defer ts.Close()
 
@@ -82,7 +84,9 @@ func TestFetchFindings(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(mockFindings)
+		if err := json.NewEncoder(w).Encode(mockFindings); err != nil {
+			t.Errorf("failed to encode mockFindings: %v", err)
+		}
 	}))
 	defer ts.Close()
 
@@ -120,7 +124,9 @@ func TestFetchProductType(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(mockProductType)
+		if err := json.NewEncoder(w).Encode(mockProductType); err != nil {
+			t.Errorf("failed to encode mockProductType: %v", err)
+		}
 	}))
 	defer ts.Close()
 
@@ -163,7 +169,9 @@ func TestFetchEngagementUpdatedTimestamp(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(mockEngagementUpdatedTimestamp)
+		if err := json.NewEncoder(w).Encode(mockEngagementUpdatedTimestamp); err != nil {
+			t.Errorf("failed to encode mockEngagementUpdatedTimestamp: %v", err)
+		}
 	}))
 	defer ts.Close()
 

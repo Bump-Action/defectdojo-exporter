@@ -18,8 +18,14 @@ func TestMainFunctionGET(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, "<h2>DefectDojo Exporter</h2>")
-		fmt.Fprint(w, "<p><a href='/metrics'>/metrics</a> -  available service metrics</p>")
+		_, err := fmt.Fprint(w, "<h2>DefectDojo Exporter</h2>")
+		if err != nil {
+			t.Errorf("unexpected error writing to response: %v", err)
+		}
+		_, err = fmt.Fprint(w, "<p><a href='/metrics'>/metrics</a> -  available service metrics</p>")
+		if err != nil {
+			t.Errorf("unexpected error writing to response: %v", err)
+		}
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -28,7 +34,12 @@ func TestMainFunctionGET(t *testing.T) {
 	mux.ServeHTTP(w, req)
 
 	resp := w.Result()
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			t.Errorf("failed to close response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Exptected status 200 OK, got %d", resp.StatusCode)
@@ -49,8 +60,14 @@ func TestMainFunctionPOST(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, "<h2>DefectDojo Exporter</h2>")
-		fmt.Fprint(w, "<p><a href='/metrics'>/metrics</a> -  available service metrics</p>")
+		_, err := fmt.Fprint(w, "<h2>DefectDojo Exporter</h2>")
+		if err != nil {
+			t.Errorf("unexpected error writing to response: %v", err)
+		}
+		_, err = fmt.Fprint(w, "<p><a href='/metrics'>/metrics</a> -  available service metrics</p>")
+		if err != nil {
+			t.Errorf("unexpected error writing to response: %v", err)
+		}
 	})
 
 	req := httptest.NewRequest(http.MethodPost, "/", nil)
@@ -59,7 +76,12 @@ func TestMainFunctionPOST(t *testing.T) {
 	mux.ServeHTTP(w, req)
 
 	resp := w.Result()
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			t.Errorf("failed to close response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusMethodNotAllowed {
 		t.Errorf("Exptected status 405 Method Not Allowed, got %d", resp.StatusCode)
