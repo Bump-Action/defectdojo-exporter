@@ -133,4 +133,7 @@ fmt:
 	gofmt -l -w -s ./lib
 	gofmt -l -w -s ./cmd
 
-check-all: fmt golangci-lint govulncheck
+tests:
+	GO111MODULE=on go test -race -mod=mod ./...
+
+check-all: tests fmt golangci-lint govulncheck
