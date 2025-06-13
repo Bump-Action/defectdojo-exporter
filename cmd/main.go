@@ -17,6 +17,7 @@ import (
 	"github.com/iamhalje/defectdojo-exporter/lib/collector"
 	"github.com/iamhalje/defectdojo-exporter/lib/defectdojo"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -75,6 +76,8 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	})
+
+	http.Handle("/metrics", promhttp.Handler())
 
 	srv := &http.Server{Addr: fmt.Sprintf(":%d", *port), Handler: nil}
 
