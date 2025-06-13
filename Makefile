@@ -118,7 +118,7 @@ docker-build-amd64-publish:
 		--build-arg APP_NAME=$(APP_NAME) \
 		--build-arg PKG_PREFIX=$(PKG_PREFIX) \
 		--build-arg GO_BUILDINFO="$(GO_BUILDINFO)" \
-		-f Dockerfile.build \
+		-f Dockerfile \
 		-t halje/defectdojo-exporter:latest \
 		-t halje/defectdojo-exporter:$(VERSION) \
 		.
