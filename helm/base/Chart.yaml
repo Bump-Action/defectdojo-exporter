@@ -1,0 +1,9 @@
+---
+apiVersion: v2
+name: defectdojo-exporter
+description: Prometheus exporter for DefectDojo
+type: application
+version: 0.1.0
+appVersion: "v2.0.2"
+maintainers:
+  - name: Dmitry Ponomaryov

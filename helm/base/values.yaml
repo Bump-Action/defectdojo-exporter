@@ -1,0 +1,52 @@
+---
+image:
+  repository: halje/defectdojo-exporter
+  tag: ""
+  pullPolicy: IfNotPresent
+
+args:
+  port: 8080
+  concurrency: 5
+  interval: 5m
+
+useEngagementUpdate: true
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+podAnnotations: {}
+
+initContainers: []
+
+extraVolumes: []
+
+extraVolumeMounts: []
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: defectdojo-exporter.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+env:
+  DD_URL: "https://defectdojo.com"
+  DD_TOKEN: "changeme"
