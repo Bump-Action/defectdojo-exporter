@@ -77,7 +77,7 @@ func TestFetchFindings(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		auth := r.Header.Get("Authorization")
 		if auth != "Token dummy-token" {
-			http.Error(w, "unathorized", http.StatusUnauthorized)
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 
@@ -115,11 +115,11 @@ func TestFetchProductType(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		auth := r.Header.Get("Authorization")
 		if auth != "Token dummy-token" {
-			http.Error(w, "unathorized", http.StatusUnauthorized)
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/son")
+		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(mockProductType)
 	}))
 	defer ts.Close()
