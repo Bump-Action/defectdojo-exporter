@@ -28,6 +28,7 @@ tolerations: []
 
 affinity: {}
 
+deploymentAnnotations: {}
 podAnnotations: {}
 
 initContainers: []
