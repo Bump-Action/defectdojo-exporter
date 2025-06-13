@@ -1,18 +1,22 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os/signal"
+	"syscall"
 	"time"
+
+	_ "go.uber.org/automaxprocs"
 
 	"github.com/VictoriaMetrics/VictoriaMetrics/lib/envflag"
 	"github.com/iamhalje/defectdojo-exporter/lib/buildinfo"
 	"github.com/iamhalje/defectdojo-exporter/lib/collector"
 	"github.com/iamhalje/defectdojo-exporter/lib/defectdojo"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -41,6 +45,9 @@ func main() {
 	prometheus.MustRegister(defectdojo.VulnVerifiedGauge)
 	prometheus.MustRegister(defectdojo.VulnMitigatedGauge)
 
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
 	go collector.CollectMetrics(*ddURL, *ddToken, *concurrency, *interval, *useEngagementUpdate)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -59,9 +66,34 @@ func main() {
 		}
 	})
 
-	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
 
-	log.Printf("Starting server on :%d", *port)
-	err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
-	log.Fatalf("Problem starting HTTP server: %v", err)
+	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
+
+	srv := &http.Server{Addr: fmt.Sprintf(":%d", *port), Handler: nil}
+
+	go func() {
+		log.Printf("Starting Exporter on :%d", *port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Problem starting Exporter: %v", err)
+		}
+	}()
+
+	<-ctx.Done()
+	log.Println("Shutdown signal received")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("Exporter shutdown error: %v", err)
+	} else {
+		log.Println("Exporter stopped gracefully")
+	}
 }
