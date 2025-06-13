@@ -1,0 +1,83 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "defectdojo-exporter.fullname" . }}
+  {{- if .Values.deploymentAnnotations }}
+  annotations:
+{{ toYaml .Values.deploymentAnnotations | indent 4 }}
+  {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "defectdojo-exporter.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "defectdojo-exporter.name" . }}
+      {{- if .Values.podAnnotations }}
+      annotations:
+{{ toYaml .Values.podAnnotations | indent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.initContainers }}
+      initContainers:
+{{ toYaml .Values.initContainers | indent 8 }}
+      {{- end }}
+      containers:
+        - name: exporter
+          image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - "-envflag.enable=true"
+            - "-port={{ .Values.args.port }}"
+            - "-concurrency={{ .Values.args.concurrency }}"
+            - "-interval={{ .Values.args.interval }}"
+            {{- if not .Values.useEngagementUpdate }}
+            - "-use-engagement-update-check=false"
+            {{- end }}
+          env:
+            - name: DD_URL
+              valueFrom:
+                secretKeyRef:
+                  name: defectdojo-secret
+                  key: DD_URL
+            - name: DD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: defectdojo-secret
+                  key: DD_TOKEN
+          ports:
+            - containerPort: {{ .Values.args.port }}
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: {{ .Values.args.port }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.args.port }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+{{- if and .Values.extraVolumeMounts (gt (len .Values.extraVolumeMounts) 0) }}
+          volumeMounts:
+{{ toYaml .Values.extraVolumeMounts | indent 12 }}
+{{- end }}
+{{- if and .Values.extraVolumes (gt (len .Values.extraVolumes) 0) }}
+      volumes:
+{{ toYaml .Values.extraVolumes | indent 6 }}
+{{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 6 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 6 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity:
+{{ toYaml .Values.affinity | indent 6 }}
+      {{- end }}

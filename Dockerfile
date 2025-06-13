@@ -21,7 +21,10 @@ RUN CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} \
 
 RUN if [ "${GOOS}" = "linux" ] || [ "${GOOS}" = "darwin" ]; then strip /out/${APP_NAME}-${GOOS}-${GOARCH} || true; fi
 
-FROM scratch AS export-stage
+FROM alpine:latest AS export-stage
+
+RUN apk add --no-cache ca-certificates
+
 COPY --from=builder /out/ ./
 
 ENTRYPOINT ["./defectdojo-exporter-linux-amd64"]
