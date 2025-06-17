@@ -3,7 +3,7 @@ module github.com/iamhalje/defectdojo-exporter
 go 1.24.4
 
 require (
-	github.com/VictoriaMetrics/VictoriaMetrics v1.118.0
+	github.com/VictoriaMetrics/VictoriaMetrics v1.119.0
 	github.com/prometheus/client_golang v1.22.0
 	go.uber.org/automaxprocs v1.6.0
 )
@@ -13,7 +13,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.63.0 // indirect
+	github.com/prometheus/common v0.64.0 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
