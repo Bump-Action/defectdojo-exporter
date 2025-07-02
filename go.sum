@@ -1,5 +1,5 @@
-github.com/VictoriaMetrics/VictoriaMetrics v1.119.0 h1:YX054hoLZdd5QLamiq2MzbQNlYQ/lej2hxNu4lgJqLU=
-github.com/VictoriaMetrics/VictoriaMetrics v1.119.0/go.mod h1:eMjkAG9cGZFEylVDbqQgJU58a94ehvUEs//3rpMAL84=
+github.com/VictoriaMetrics/VictoriaMetrics v1.120.0 h1:dLLDWQtD+J5rvFvvx1xJJ3IDWVtQV8qto4U9de9rV14=
+github.com/VictoriaMetrics/VictoriaMetrics v1.120.0/go.mod h1:3ei3a+s7lHOM33wjpDmhOMdUQpKcMBZ0Ub+6ORzYd/Y=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
