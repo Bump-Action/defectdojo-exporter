@@ -1,4 +1,4 @@
-# github.com/VictoriaMetrics/VictoriaMetrics v1.120.0
+# github.com/VictoriaMetrics/VictoriaMetrics v1.121.0
 ## explicit; go 1.24.4
 github.com/VictoriaMetrics/VictoriaMetrics/lib/envflag
 github.com/VictoriaMetrics/VictoriaMetrics/lib/envtemplate
