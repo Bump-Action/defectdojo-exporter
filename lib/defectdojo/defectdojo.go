@@ -85,12 +85,12 @@ type TypeResponse struct {
 }
 
 // FetchProducts retrieves the list of products
-func FetchProducts(link, token string) ([]Product, error) {
+func FetchProducts(link, token string, timeout time.Duration) ([]Product, error) {
 	products := []Product{}
 	endpoint := fmt.Sprintf("%s/api/v2/products/", link)
 
 	for endpoint != "" {
-		resp, err := makeRequest(endpoint, token)
+		resp, err := makeRequest(endpoint, token, timeout)
 		if err != nil {
 			log.Printf("Error fetching products: %v", err)
 			return nil, err
@@ -108,12 +108,12 @@ func FetchProducts(link, token string) ([]Product, error) {
 }
 
 // FetchVulnerabilities retrieves the list of findings
-func FetchVulnerabilities(product, link, token string) ([]Finding, error) {
+func FetchVulnerabilities(product, link, token string, timeout time.Duration) ([]Finding, error) {
 	vulnerabilities := []Finding{}
 	endpoint := fmt.Sprintf("%s/api/v2/findings/?product_name=%s&limit=100", link, url.PathEscape(product))
 
 	for endpoint != "" {
-		resp, err := makeRequest(endpoint, token)
+		resp, err := makeRequest(endpoint, token, timeout)
 		if err != nil {
 			log.Printf("Error fetching vulnerabilities for product %s: %v", product, err)
 			return nil, err
@@ -132,10 +132,10 @@ func FetchVulnerabilities(product, link, token string) ([]Finding, error) {
 }
 
 // FetchProductType retrieves the product type
-func FetchProductType(product int, link, token string) (string, error) {
+func FetchProductType(product int, link, token string, timeout time.Duration) (string, error) {
 	endpoint := fmt.Sprintf("%s/api/v2/product_types/?id=%d&limit=1", link, product)
 
-	resp, err := makeRequest(endpoint, token)
+	resp, err := makeRequest(endpoint, token, timeout)
 	if err != nil {
 		log.Printf("Error fetching product type for product %d: %v", product, err)
 		return "", err
@@ -154,12 +154,12 @@ func FetchProductType(product int, link, token string) (string, error) {
 }
 
 // FetchEngagementUpdatedTimestamp retrieves the timestamp of the most recent engagement
-func FetchEngagementUpdatedTimestamp(product int, link, token string) (time.Time, error) {
+func FetchEngagementUpdatedTimestamp(product int, link, token string, timeout time.Duration) (time.Time, error) {
 	var latestUpdate time.Time
 	endpoint := fmt.Sprintf("%s/api/v2/engagements/?product=%d&limit=100", link, product)
 
 	for endpoint != "" {
-		resp, err := makeRequest(endpoint, token)
+		resp, err := makeRequest(endpoint, token, timeout)
 		if err != nil {
 			log.Printf("Error fetching engagements for product %d: %v", product, err)
 			return time.Time{}, err
@@ -184,8 +184,8 @@ func FetchEngagementUpdatedTimestamp(product int, link, token string) (time.Time
 }
 
 // makeRequest send request in API DefectDojo
-func makeRequest(link, token string) ([]byte, error) {
-	client := &http.Client{Timeout: 30 * time.Second}
+func makeRequest(link, token string, timeout time.Duration) ([]byte, error) {
+	client := &http.Client{Timeout: timeout}
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
 		return nil, err

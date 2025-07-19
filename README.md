@@ -40,6 +40,8 @@ Available flags:
       Prefix for environment variables if -envflag.enable is set
 -interval duration
       Sleep interval duration between metric collection cycles (default 5m0s)
+-timeout duration
+      API request timeout (default 30s)
 -port int
       Port number where the exporter HTTP server will listen (default 8080)
 -use-engagement-update-check
