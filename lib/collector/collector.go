@@ -12,11 +12,11 @@ import (
 )
 
 // CollectMetrics main collector
-func CollectMetrics(link, token string, concurrency int, interval time.Duration, useEngagementUpdate bool) {
+func CollectMetrics(link, token string, concurrency int, interval time.Duration, timeout time.Duration, useEngagementUpdate bool) {
 	limiter := make(chan struct{}, concurrency)
 
 	for {
-		products, err := defectdojo.FetchProducts(link, token)
+		products, err := defectdojo.FetchProducts(link, token, timeout)
 		if err != nil {
 			log.Printf("Error fetching products: %v", err)
 			return
@@ -33,7 +33,7 @@ func CollectMetrics(link, token string, concurrency int, interval time.Duration,
 				defer func() { <-limiter }()
 
 				if useEngagementUpdate {
-					latestEngagementUpdate, err := defectdojo.FetchEngagementUpdatedTimestamp(productID, link, token)
+					latestEngagementUpdate, err := defectdojo.FetchEngagementUpdatedTimestamp(productID, link, token, timeout)
 					if err != nil {
 						log.Printf("Error fetching engagement update time for product %s: %v", product, err)
 						return
@@ -49,13 +49,13 @@ func CollectMetrics(link, token string, concurrency int, interval time.Duration,
 					defectdojo.MU.Unlock()
 				}
 
-				productType, err := defectdojo.FetchProductType(productTypeID, link, token)
+				productType, err := defectdojo.FetchProductType(productTypeID, link, token, timeout)
 				if err != nil {
 					log.Printf("Error fetching product type for product %s: %v", product, err)
 					return
 				}
 
-				vulnerabilities, err := defectdojo.FetchVulnerabilities(product, link, token)
+				vulnerabilities, err := defectdojo.FetchVulnerabilities(product, link, token, timeout)
 				if err != nil {
 					log.Printf("Error fetching vulnerabilities for product %s: %v", product, err)
 					return

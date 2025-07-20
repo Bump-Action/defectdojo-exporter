@@ -40,7 +40,7 @@ func TestFetchProducts(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	products, err := FetchProducts(ts.URL, "dummy-token")
+	products, err := FetchProducts(ts.URL, "dummy-token", 30*time.Second)
 	if err != nil {
 		t.Fatalf("FetchProducts error: %v", err)
 	}
@@ -90,7 +90,7 @@ func TestFetchFindings(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	findings, err := FetchVulnerabilities("Test Product", ts.URL, "dummy-token")
+	findings, err := FetchVulnerabilities("Test Product", ts.URL, "dummy-token", 30*time.Second)
 	if err != nil {
 		t.Fatalf("FetchFindings error: %v", err)
 	}
@@ -130,7 +130,7 @@ func TestFetchProductType(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	types, err := FetchProductType(1, ts.URL, "dummy-token")
+	types, err := FetchProductType(1, ts.URL, "dummy-token", 30*time.Second)
 	if err != nil {
 		t.Fatalf("FetchProductType error: %v", err)
 	}
@@ -175,7 +175,7 @@ func TestFetchEngagementUpdatedTimestamp(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	latest, err := FetchEngagementUpdatedTimestamp(1, ts.URL, "dummy-token")
+	latest, err := FetchEngagementUpdatedTimestamp(1, ts.URL, "dummy-token", 30*time.Second)
 	if err != nil {
 		t.Fatalf("FetchEngagementUpdatedTimestamp error: %v", err)
 	}

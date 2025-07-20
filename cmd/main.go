@@ -26,6 +26,7 @@ var (
 	port                = flag.Int("port", 8080, "Port number where the exporter HTTP server will listen")
 	concurrency         = flag.Int("concurrency", 5, "Maximum number of concurrent API requests to DefectDojo")
 	interval            = flag.Duration("interval", 5*time.Minute, "Sleep interval duration between metric collection cycles")
+	timeout             = flag.Duration("timeout", 30*time.Second, "API request timeout")
 	useEngagementUpdate = flag.Bool("use-engagement-update-check", true, "Skip collection if no engagement updates, need disable if vulnerabiltiies aren't added via engagement")
 )
 
@@ -49,7 +50,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	go collector.CollectMetrics(*ddURL, *ddToken, *concurrency, *interval, *useEngagementUpdate)
+	go collector.CollectMetrics(*ddURL, *ddToken, *concurrency, *interval, *timeout, *useEngagementUpdate)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
