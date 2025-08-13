@@ -52,35 +52,17 @@ func main() {
 
 	go collector.CollectMetrics(*ddURL, *ddToken, *concurrency, *interval, *timeout, *useEngagementUpdate)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_, err := fmt.Fprint(w, "<h2>DefectDojo Exporter</h2>")
-		if err != nil {
-			log.Fatalf("Error writing response: %v", err)
-		}
-		_, err = fmt.Fprintf(w, "<p><a href='/metrics'>/metrics</a> -  available service metrics</p>")
-		if err != nil {
-			log.Fatalf("Error writing reponse: %v", err)
-		}
-	})
+	mux := http.NewServeMux()
+	registerHandlers(mux)
 
-	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
-	})
-
-	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
-	})
-
-	http.Handle("/metrics", promhttp.Handler())
-
-	srv := &http.Server{Addr: fmt.Sprintf(":%d", *port), Handler: nil}
+	srv := &http.Server{
+		Addr:              fmt.Sprintf(":%d", *port),
+		Handler:           mux,
+		ReadTimeout:       10 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       120 * time.Second,
+	}
 
 	go func() {
 		log.Printf("Starting Exporter on :%d", *port)
@@ -100,4 +82,38 @@ func main() {
 	} else {
 		log.Println("Exporter stopped gracefully")
 	}
+}
+
+func registerHandlers(mux *http.ServeMux) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, err := fmt.Fprint(w, "<h2>DefectDojo Exporter</h2>")
+		if err != nil {
+			log.Fatalf("Error writing response: %v", err)
+		}
+		_, err = fmt.Fprintf(w, "<p><a href='/metrics'>/metrics</a> -  available service metrics</p>")
+		if err != nil {
+			log.Fatalf("Error writing reponse: %v", err)
+		}
+	})
+
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write([]byte("ok")); err != nil {
+			log.Printf("error writing /healthz response: %v", err)
+		}
+	})
+
+	mux.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write([]byte("ok")); err != nil {
+			log.Printf("error writing /ready response: %v", err)
+		}
+	})
+
+	mux.Handle("/metrics", promhttp.Handler())
 }
