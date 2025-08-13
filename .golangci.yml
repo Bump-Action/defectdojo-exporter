@@ -26,3 +26,4 @@ linters-settings:
       - "fmt.Fprintf"
       - "fmt.Fprint"
       - "(net/http.ResponseWriter).Write"
+      - "w.Write"
