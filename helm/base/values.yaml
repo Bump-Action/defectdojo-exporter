@@ -49,5 +49,6 @@ ingress:
   tls: []
 
 env:
+  create: true
   DD_URL: "https://defectdojo.com"
   DD_TOKEN: "changeme"
