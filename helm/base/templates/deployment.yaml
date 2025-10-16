@@ -29,13 +29,18 @@ spec:
         - name: exporter
           image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/bin/sh", "-c"]
           args:
-            - "-envflag.enable=true"
-            - "-port={{ .Values.args.port }}"
-            - "-concurrency={{ .Values.args.concurrency }}"
-            - "-interval={{ .Values.args.interval }}"
+            - |
+              echo "${CA_BUNDLE}" > /usr/local/share/ca-certificates/custom-ca.crt
+              update-ca-certificates
+              ./defectdojo-exporter-linux-amd64 \
+              -envflag.enable=true \
+              -port={{ .Values.args.port }} \
+              -concurrency={{ .Values.args.concurrency }} \
+              -interval={{ .Values.args.interval }} \
             {{- if not .Values.useEngagementUpdate }}
-            - "-use-engagement-update-check=false"
+              -use-engagement-update-check=false
             {{- end }}
           env:
             - name: DD_URL
@@ -48,6 +53,17 @@ spec:
                 secretKeyRef:
                   name: defectdojo-secret
                   key: DD_TOKEN
+            {{- if .Values.caBundle }}
+            - name: CA_BUNDLE
+              value: {{ .Values.caBundle | quote }}
+            {{- else }}
+            - name: CA_BUNDLE
+              valueFrom:
+                secretKeyRef:
+                  name: custom-ca
+                  key: CA_BUNDLE
+                  optional: true
+            {{- end }}
           ports:
             - containerPort: {{ .Values.args.port }}
               name: http
